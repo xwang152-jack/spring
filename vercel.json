@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index2.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index2.html"
+    }
+  ],
+  "name": "2026-horse-year-countdown",
+  "alias": ["2026-horse-year-countdown"],
+  "public": true
+}
