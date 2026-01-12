@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026马年春节倒计时 | 马到成功</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ===== 全局样式 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            /* 中国红背景 */
+            background: radial-gradient(ellipse at center, #FF2D2D 0%, #DD1C1A 30%, #C8102E 60%, #A00000 100%);
+        }
+
+        /* ===== Canvas 烟花背景层 ===== */
+        #fireworksCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        /* ===== 主内容容器 ===== */
+        .container {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        /* ===== 装饰元素：灯笼 ===== */
+        .lantern {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(to bottom, #FF4500, #DC143C);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.8);
+            animation: swing 3s ease-in-out infinite;
+        }
+
+        .lantern::before {
+            content: '福';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: gold;
+            font-size: 28px;
+            font-weight: bold;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+
+        .lantern::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 15px;
+            background: linear-gradient(to bottom, #FFD700, #FFA500);
+            border-radius: 0 0 50% 50%;
+        }
+
+        .lantern-left {
+            top: 50px;
+            left: 5%;
+            animation-delay: 0s;
+        }
+
+        .lantern-right {
+            top: 50px;
+            right: 5%;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes swing {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        /* ===== 装饰元素：祥云 ===== */
+        .cloud {
+            position: absolute;
+            opacity: 0.25;
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: #FFD700;
+            border-radius: 50%;
+        }
+
+        .cloud::before {
+            width: 50px;
+            height: 25px;
+            top: 0;
+            left: 0;
+        }
+
+        .cloud::after {
+            width: 40px;
+            height: 20px;
+            top: 5px;
+            left: 30px;
+        }
+
+        .cloud-1 {
+            bottom: 10%;
+            left: 10%;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .cloud-2 {
+            bottom: 15%;
+            right: 10%;
+            animation: float 6s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        /* ===== 主标题 ===== 优化：减弱发光效果 */
+        .title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: clamp(2rem, 6vw, 4rem);
+            color: #FFE680;
+            /* 🔧 柔和的文字阴影 */
+            text-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(255, 215, 0, 0.4);
+            margin-bottom: 2rem;
+            text-align: center;
+            /* 🔧 移除闪烁动画 */
+        }
+
+        /* ===== 奔跑的马 SVG ===== */
+        .horse-container {
+            margin-bottom: 2rem;
+            animation: horseRun 2s ease-in-out infinite;
+        }
+
+        @keyframes horseRun {
+            0%, 100% { transform: translateX(-10px) scale(1); }
+            50% { transform: translateX(10px) scale(1.05); }
+        }
+
+        .horse-svg {
+            width: clamp(80px, 15vw, 150px);
+            height: auto;
+            /* 🔧 减弱马的发光效果 */
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+        }
+
+        /* ===== 倒计时容器 ===== */
+        .countdown {
+            display: flex;
+            gap: clamp(1rem, 3vw, 2rem);
+            margin-bottom: 2rem;
+        }
+
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 🔧 优化：大幅减弱数字发光 */
+        .time-value {
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 900;
+            color: #FFE680;
+            /* 🔧 柔和的阴影效果 */
+            text-shadow: 
+                0 3px 6px rgba(0, 0, 0, 0.4),
+                0 0 20px rgba(255, 215, 0, 0.3);
+            font-family: 'Noto Serif SC', serif;
+            line-height: 1;
+            min-width: clamp(60px, 12vw, 120px);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        /* 🔧 优化：更柔和的心跳动画 */
+        .time-value.pulse {
+            animation: heartbeat 0.4s ease-in-out;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .time-label {
+            font-size: clamp(0.9rem, 2.5vw, 1.5rem);
+            color: #FFCC80;
+            margin-top: 0.5rem;
+            font-family: 'Ma Shan Zheng', cursive;
+            /* 🔧 减弱标签发光 */
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .separator {
+            font-size: clamp(3rem, 10vw, 6rem);
+            color: #FFE680;
+            align-self: center;
+            margin-top: -2rem;
+            /* 🔧 减弱分隔符发光 */
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        /* ===== 祝福语 ===== */
+        .blessing {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            color: #FFCC80;
+            /* 🔧 减弱祝福语发光 */
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            /* 🔧 移除闪烁动画 */
+        }
+
+        /* ===== 点击提示 ===== */
+        .click-hint {
+            position: absolute;
+            bottom: 30px;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            color: rgba(255, 230, 128, 0.8);
+            font-family: 'Ma Shan Zheng', cursive;
+            animation: bounce 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* ===== 响应式设计 ===== */
+        @media (max-width: 768px) {
+            .lantern {
+                width: 40px;
+                height: 60px;
+            }
+            
+            .lantern::before {
+                font-size: 20px;
+            }
+
+            .lantern-left { left: 2%; }
+            .lantern-right { right: 2%; }
+        }
+
+        @media (max-width: 480px) {
+            .countdown {
+                gap: 0.5rem;
+            }
+            
+            .separator {
+                margin-top: -1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas 烟花效果层 -->
+    <canvas id="fireworksCanvas"></canvas>
+
+    <!-- 主内容 -->
+    <div class="container">
+        <!-- 装饰灯笼 -->
+        <div class="lantern lantern-left"></div>
+        <div class="lantern lantern-right"></div>
+
+        <!-- 装饰祥云 -->
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+
+        <!-- 主标题 -->
+        <h1 class="title">2026马年春节倒计时</h1>
+
+        <!-- 奔跑的马 SVG -->
+        <div class="horse-container">
+            <svg class="horse-svg" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+                <!-- 马的剪影 SVG，金色填充 -->
+                <g fill="#FFD700" stroke="#FFA500" stroke-width="2">
+                    <!-- 马身体 -->
+                    <ellipse cx="100" cy="80" rx="45" ry="30"/>
+                    <!-- 马头 -->
+                    <ellipse cx="145" cy="60" rx="20" ry="25" transform="rotate(-20 145 60)"/>
+                    <!-- 马颈 -->
+                    <path d="M 125 65 Q 135 55 145 60" fill="#FFD700"/>
+                    <!-- 马鬃 -->
+                    <path d="M 145 40 Q 150 35 148 45 Q 152 38 150 48 Q 155 42 153 50" fill="#FFA500" stroke="none"/>
+                    <!-- 马耳 -->
+                    <polygon points="142,38 145,30 148,38" fill="#FFD700"/>
+                    <!-- 马腿（前） -->
+                    <rect x="120" y="105" width="8" height="35" rx="4"/>
+                    <rect x="135" y="105" width="8" height="35" rx="4"/>
+                    <!-- 马腿（后） -->
+                    <rect x="70" y="105" width="8" height="35" rx="4"/>
+                    <rect x="85" y="105" width="8" height="35" rx="4"/>
+                    <!-- 马尾 -->
+                    <path d="M 60 75 Q 45 70 40 85 Q 35 95 45 100" fill="#FFA500" stroke="none"/>
+                    <!-- 马蹄 -->
+                    <circle cx="124" cy="142" r="4" fill="#8B4513"/>
+                    <circle cx="139" cy="142" r="4" fill="#8B4513"/>
+                    <circle cx="74" cy="142" r="4" fill="#8B4513"/>
+                    <circle cx="89" cy="142" r="4" fill="#8B4513"/>
+                </g>
+            </svg>
+        </div>
+
+        <!-- 倒计时显示 -->
+        <div class="countdown">
+            <div class="time-unit">
+                <div class="time-value" id="days">00</div>
+                <div class="time-label">天</div>
+            </div>
+            <div class="separator">:</div>
+            <div class="time-unit">
+                <div class="time-value" id="hours">00</div>
+                <div class="time-label">时</div>
+            </div>
+            <div class="separator">:</div>
+            <div class="time-unit">
+                <div class="time-value" id="minutes">00</div>
+                <div class="time-label">分</div>
+            </div>
+            <div class="separator">:</div>
+            <div class="time-unit">
+                <div class="time-value" id="seconds">00</div>
+                <div class="time-label">秒</div>
+            </div>
+        </div>
+
+        <!-- 祝福语 -->
+        <div class="blessing">🐴 马到成功 · 龙马精神 · 万事如意 🐴</div>
+
+        <!-- 点击提示 -->
+        <div class="click-hint">✨ 点击屏幕释放烟花 ✨</div>
+    </div>
+
+    <script>
+        // ========================================
+        // 倒计时功能模块（AI生成）
+        // ========================================
+        const targetDate = new Date('2026-02-17T00:00:00').getTime();
+
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance < 0) {
+                document.getElementById('days').textContent = '00';
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                document.getElementById('seconds').textContent = '00';
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // 更新DOM
+            updateTimeValue('days', days);
+            updateTimeValue('hours', hours);
+            updateTimeValue('minutes', minutes);
+            updateTimeValue('seconds', seconds);
+        }
+
+        // 🔧 优化：使用更温和的动画方式
+        function updateTimeValue(id, value) {
+            const element = document.getElementById(id);
+            const formattedValue = value.toString().padStart(2, '0');
+            
+            if (element.textContent !== formattedValue) {
+                element.textContent = formattedValue;
+                // 添加pulse类触发动画
+                element.classList.add('pulse');
+                setTimeout(() => {
+                    element.classList.remove('pulse');
+                }, 400);
+            }
+        }
+
+        // 初始化并每秒更新
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+
+        // ========================================
+        // Canvas 烟花特效模块（AI生成）
+        // ========================================
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 设置Canvas尺寸
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // 粒子类
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.velocity = {
+                    x: (Math.random() - 0.5) * 8,
+                    y: (Math.random() - 0.5) * 8
+                };
+                this.alpha = 1;
+                this.decay = Math.random() * 0.015 + 0.015;
+                this.size = Math.random() * 3 + 2;
+            }
+
+            update() {
+                this.velocity.y += 0.1; // 重力效果
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                // 添加光晕效果
+                ctx.globalAlpha = this.alpha * 0.3;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // 烟花类
+        class Firework {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.particles = [];
+                this.colors = [
+                    '#FFD700', '#FF4500', '#FF6347', '#FFA500', 
+                    '#FFFF00', '#FF1493', '#00FF00', '#00CED1'
+                ];
+                this.createParticles();
+            }
+
+            createParticles() {
+                const particleCount = Math.random() * 50 + 100;
+                for (let i = 0; i < particleCount; i++) {
+                    const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+                    this.particles.push(new Particle(this.x, this.y, color));
+                }
+            }
+
+            update() {
+                this.particles = this.particles.filter(particle => particle.alpha > 0);
+                this.particles.forEach(particle => particle.update());
+            }
+
+            draw() {
+                this.particles.forEach(particle => particle.draw());
+            }
+
+            isDead() {
+                return this.particles.length === 0;
+            }
+        }
+
+        // 烟花管理
+        let fireworks = [];
+
+        function createFirework(x, y) {
+            fireworks.push(new Firework(x, y));
+        }
+
+        // 自动随机烟花
+        function autoFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height * 0.6 + canvas.height * 0.1;
+            createFirework(x, y);
+        }
+
+        // 每2-4秒自动放一次烟花
+        function scheduleAutoFirework() {
+            setTimeout(() => {
+                autoFirework();
+                scheduleAutoFirework();
+            }, Math.random() * 2000 + 2000);
+        }
+        scheduleAutoFirework();
+
+        // 点击触发烟花
+        canvas.addEventListener('click', (e) => {
+            createFirework(e.clientX, e.clientY);
+        });
+
+        // 移动端触摸支持
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            createFirework(touch.clientX, touch.clientY);
+        });
+
+        // 动画循环
+        function animate() {
+            // 使用半透明红色覆盖，保持中国红背景
+            ctx.fillStyle = 'rgba(139, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 更新和绘制所有烟花
+            fireworks = fireworks.filter(firework => !firework.isDead());
+            fireworks.forEach(firework => {
+                firework.update();
+                firework.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // 启动动画
+        animate();
+
+        // ========================================
+        // 额外的视觉增强（AI生成）
+        // ========================================
+        
+        // 为页面添加鼠标移动视差效果
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 20;
+            mouseY = (e.clientY / window.innerHeight - 0.5) * 20;
+            
+            document.querySelector('.horse-container').style.transform = 
+                `translate(${mouseX}px, ${mouseY}px)`;
+        });
+
+        // 控制台彩蛋
+        console.log('%c🐴 2026马年春节倒计时 🐴', 
+            'font-size: 20px; color: #FFD700; text-shadow: 0 0 10px rgba(255,215,0,0.8);');
+        console.log('%c马到成功！万事如意！', 
+            'font-size: 16px; color: #FF4500;');
+    </script>
+</body>
+</html>
